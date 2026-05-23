@@ -128,7 +128,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .modal-textarea:focus{border-color:var(--accent);}
 .modal-select{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:8px 11px;font-size:13px;color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;outline:none;appearance:none;cursor:pointer;}
 .modal-select:focus{border-color:var(--accent);}
-input[type="date"].modal-input{color-scheme:dark;}
+input[type="date"].modal-input{color-scheme:light dark;}
 .light input[type="date"].modal-input{color-scheme:light;}
 .recap-tab{flex:1;padding:5px 10px;border-radius:16px;font-size:12px;cursor:pointer;text-align:center;transition:background 0.15s,color 0.15s;color:var(--text3);}
 .recap-tab.active{background:var(--accent);color:white;}
@@ -248,7 +248,7 @@ const QUOTES=[
 ];
 const TC=['#7c6ef5','#34d399','#f59e0b','#f97066','#60a5fa','#a78bfa','#fb7185'];
 
-let isDark=true,openMenuId=null,recapOpen=false,recapViewMode='yesterday';
+let isDark=localStorage.getItem('theme')==='dark',openMenuId=null,recapOpen=false,recapViewMode='yesterday';
 let tracks=[],actions=[],intentions=[],recapLogs=[];
 
 function dk(d){return d.toISOString().split('T')[0];}
@@ -263,7 +263,6 @@ function lastWeekRange(){
 function tc(i){return TC[i%TC.length];}
 function tIdx(id){return tracks.findIndex(t=>t.id===id);}
 
-// ── SUPABASE CRUD ──
 async function dbTracks(){const{data}=await sb.from('cc_tracks').select('*').order('rank');return data||[];}
 async function dbActions(){const{data}=await sb.from('cc_actions').select('*').order('created_at');return data||[];}
 async function dbIntentions(){const{data}=await sb.from('cc_intentions').select('*');return data||[];}
@@ -277,13 +276,13 @@ async function upsertIntention(i){await sb.from('cc_intentions').upsert({id:i.id
 async function deleteIntention(id){await sb.from('cc_intentions').delete().eq('id',id);}
 async function insertRecapLog(l){await sb.from('cc_recap_logs').insert({id:l.id,text:l.text,track_id:l.trackId||'',type:l.type,date:l.date,source:l.source||'dashboard'});}
 
-// Map DB rows to app objects
 function mapTrack(r){return{id:r.id,name:r.name,description:r.description,why:r.why,focus:r.focus,rank:r.rank,status:r.status};}
 function mapAction(r){return{id:r.id,trackId:r.track_id,title:r.title,notes:r.notes,link:r.link,due:r.due,done:r.done,addedFrom:r.added_from};}
 function mapIntention(r){return{id:r.id,date:r.date,trackId:r.track_id,goal:r.goal};}
 function mapRecapLog(r){return{id:r.id,text:r.text,trackId:r.track_id,type:r.type,date:r.date,source:r.source};}
 
 async function init(){
+  applyThemeOnLoad();
   document.getElementById('today-date').textContent=new Date().toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric'});
   loadQuote();
   const[t,a,i,r]=await Promise.all([dbTracks(),dbActions(),dbIntentions(),dbRecapLogs()]);
@@ -299,7 +298,8 @@ function loadQuote(){
   document.getElementById('quote-text').textContent=`"${q.text}"`;
   document.getElementById('quote-author').textContent=`— ${q.author}`;
 }
-function toggleTheme(){isDark=!isDark;document.body.classList.toggle('light',!isDark);document.getElementById('theme-btn').textContent=isDark?'🌙':'☀️';}
+function toggleTheme(){isDark=!isDark;localStorage.setItem('theme',isDark?'dark':'light');document.body.classList.toggle('light',!isDark);document.getElementById('theme-btn').textContent=isDark?'🌙':'☀️';}
+function applyThemeOnLoad(){document.body.classList.toggle('light',!isDark);document.getElementById('theme-btn').textContent=isDark?'🌙':'☀️';}
 
 function isToday(a){
   if(a.done||!a.due)return false;
@@ -357,7 +357,7 @@ function renderTodayActions(){
     const t=tracks.find(x=>x.id===a.trackId);
     const c=tc(tIdx(a.trackId));
     return`<div class="today-action" onclick="openCard('${a.id}')">
-      <div class="ta-check ${a.done?'done':''}">${a.done?'✓':''}</div>
+      <div class="ta-check ${a.done?'done':''}"></div>
       <div class="ta-row">
         <div class="ta-title" style="${a.done?'text-decoration:line-through;color:var(--text3)':''}">${a.title}</div>
         ${t?`<div class="ta-track" style="color:${c}">${t.name}</div>`:''}
