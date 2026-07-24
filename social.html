@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Social HQ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<style>
+  :root {
+    --cream: #FFFDF7;
+    --cream-2: #FFFBF4;
+    --ink: #2C261D;
+    --muted: #8A8072;
+    --soft: #B5AC9B;
+    --line: #E5DCC9;
+    --line-2: #EAE2D2;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--ink);
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+  }
+  .wrap { max-width: 1280px; margin: 0 auto; padding: 36px 32px 80px; position: relative; z-index: 1; }
+
+  /* header */
+  header { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+  h1 { font-size: 30px; font-weight: 700; letter-spacing: -0.02em; }
+  .pills { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  .pill {
+    font-size: 12px; color: var(--muted); border: 1px solid var(--line);
+    padding: 5px 12px; border-radius: 999px; background: var(--cream-2); cursor: default;
+  }
+  .pill.clickable { cursor: pointer; }
+  .pill.clickable:hover { border-color: var(--soft); }
+  .toggle {
+    display: flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--cream-2);
+  }
+  .toggle button {
+    font-family: inherit; font-size: 13px; padding: 8px 18px; border: none; background: transparent;
+    color: var(--muted); cursor: pointer; font-weight: 500;
+  }
+  .toggle button.on { background: var(--ink); color: var(--cream); }
+  .header-right { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .settings { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
+  .settings select {
+    font-family: inherit; font-size: 12px; color: var(--ink); background: var(--cream-2);
+    border: 1px solid var(--line); border-radius: 8px; padding: 5px 8px; cursor: pointer;
+  }
+  .settings label { display: flex; align-items: center; gap: 4px; cursor: pointer; }
+
+  /* vitals */
+  .vitals { margin-top: 28px; border: 1px solid var(--line); border-radius: 14px; background: var(--cream-2); overflow: hidden; }
+  .vitals-head { display: flex; align-items: center; justify-content: space-between; padding: 12px 18px; cursor: pointer; }
+  .vitals-head span { font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+  .vitals-head small { font-size: 12px; color: var(--soft); }
+  .vitals-body { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; border-top: 1px solid var(--line); }
+  .vital { padding: 14px 18px; }
+  .vital + .vital { border-left: 1px solid var(--line); }
+  .vital .vname { font-size: 13px; font-weight: 700; margin-bottom: 8px; }
+  .vital .vrow { display: flex; justify-content: space-between; font-size: 12px; padding: 2px 0; }
+  .vital .vrow b { font-weight: 500; }
+  .vital .vrow span { color: var(--muted); }
+  .vital .vstats { display: flex; gap: 16px; margin-top: 8px; }
+  .vital .vstat b { font-size: 18px; font-weight: 700; display: block; }
+  .vital .vstat span { font-size: 11px; color: var(--muted); }
+
+  /* channel sections */
+  section.channel { margin-top: 40px; border-radius: 16px; overflow: hidden; border: 1px solid var(--line); background: var(--cream-2); }
+  .band { display: flex; align-items: center; gap: 12px; padding: 14px 18px; }
+  .mono {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.04em; color: #FFFBF4;
+    background: rgba(255,251,244,0.22); border: 1px solid rgba(255,251,244,0.45);
+    padding: 4px 8px; border-radius: 8px;
+  }
+  .band h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; color: #FFFBF4; line-height: 1.25; }
+  .band .status { font-size: 12.5px; color: rgba(255,251,244,0.85); margin-left: 4px; }
+  .band .count { margin-left: auto; font-size: 12px; font-weight: 500; color: #FFFBF4; background: rgba(255,251,244,0.2); padding: 4px 12px; border-radius: 999px; }
+  .band .add {
+    font-family: inherit; font-size: 16px; line-height: 1; color: #FFFBF4; background: rgba(255,251,244,0.2);
+    border: none; width: 26px; height: 26px; border-radius: 999px; cursor: pointer;
+  }
+  .band .add:hover { background: rgba(255,251,244,0.35); }
+  .stages { display: flex; gap: 10px; padding: 16px; overflow-x: auto; align-items: flex-start; }
+  .stage { flex: 1; min-width: 150px; }
+  .stage-head { display: flex; align-items: baseline; gap: 6px; margin-bottom: 8px; }
+  .stage-head b { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+  .stage-head span { font-size: 11px; color: var(--soft); }
+  .stage.ghost { opacity: 0.65; }
+  .stage.ghost .empty {
+    border: 1.5px dashed var(--line); border-radius: 10px; padding: 14px 10px;
+    text-align: center; font-size: 12px; color: var(--soft);
+  }
+  .card {
+    border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; cursor: pointer;
+    border: 1px solid var(--line-2); transition: transform .08s ease;
+  }
+  .card:hover { transform: translateY(-1px); }
+  .card .title { font-size: 13.5px; font-weight: 500; line-height: 1.35; }
+  .card .chips { display: flex; flex-wrap: wrap; gap: 4px 10px; margin-top: 6px; }
+  .card .chip { font-size: 11px; color: var(--muted); }
+  .card .chip.team { color: var(--purple); font-weight: 500; }
+  .card.with-team { border-left: 3px solid var(--purple); }
+
+  /* posted + graveyard */
+  .posted { border-top: 1px solid var(--line); padding: 12px 16px 16px; }
+  .posted .label, .graveyard .label { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--soft); margin-bottom: 8px; }
+  .posted-row { font-size: 13px; color: var(--muted); text-decoration: line-through; padding: 3px 0; }
+  .posted-row span { text-decoration: none; font-size: 11px; margin-left: 8px; color: var(--soft); }
+  .posted .more { font-size: 12px; color: var(--muted); cursor: pointer; text-decoration: underline; background: none; border: none; font-family: inherit; padding: 0; margin-top: 4px; }
+  .graveyard { margin-top: 28px; border: 1.5px dashed var(--line); border-radius: 14px; padding: 16px 18px; display: none; }
+  .graveyard.open { display: block; }
+  .graveyard .posted-row { text-decoration: none; }
+
+  /* calendar */
+  .calendar { margin-top: 32px; display: none; }
+  .calendar.on { display: block; }
+  .boards.off { display: none; }
+  .cal-head { display: flex; align-items: baseline; gap: 14px; margin-bottom: 16px; }
+  .cal-head b { font-size: 18px; font-weight: 700; }
+  .cal-head span { font-size: 13px; color: var(--muted); font-style: italic; }
+  .cal-grid { border: 1px solid var(--line); border-radius: 14px; background: var(--cream-2); padding: 16px; overflow-x: auto; }
+  .cal-days { display: grid; grid-template-columns: 120px repeat(14, 1fr); gap: 4px; margin-bottom: 10px; }
+  .cal-day { text-align: center; }
+  .cal-day .dow { font-size: 10px; color: var(--soft); text-transform: uppercase; }
+  .cal-day .num { font-size: 13px; font-weight: 700; color: var(--muted); }
+  .cal-day.today .num { color: var(--ink); }
+  .cal-lane { display: grid; grid-template-columns: 120px repeat(14, 1fr); gap: 4px; align-items: center; padding: 6px 0; border-top: 1px solid var(--line); }
+  .cal-lane .lname { font-size: 13px; font-weight: 700; }
+  .cal-cell { min-height: 30px; border-radius: 8px; }
+  .cal-chip {
+    min-height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 500; cursor: pointer;
+  }
+  .cal-legend { display: flex; gap: 18px; margin-top: 14px; font-size: 12px; color: var(--muted); }
+
+  /* modal */
+  .overlay {
+    position: fixed; inset: 0; background: rgba(44,38,29,0.4); display: none;
+    align-items: center; justify-content: center; z-index: 50; padding: 20px;
+  }
+  .overlay.open { display: flex; }
+  .modal {
+    background: var(--cream); border-radius: 16px; width: 100%; max-width: 460px;
+    max-height: 90vh; overflow-y: auto; padding: 22px;
+  }
+  .modal h3 { font-size: 18px; font-weight: 700; margin-bottom: 16px; }
+  .modal .field { margin-bottom: 12px; }
+  .modal label { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); display: block; margin-bottom: 4px; }
+  .modal input, .modal textarea, .modal select {
+    width: 100%; font-family: inherit; font-size: 14px; color: var(--ink);
+    background: var(--cream-2); border: 1px solid var(--line); border-radius: 10px; padding: 9px 11px;
+  }
+  .modal textarea { min-height: 80px; resize: vertical; }
+  .modal .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .modal .actions { display: flex; gap: 8px; margin-top: 18px; flex-wrap: wrap; }
+  .btn {
+    font-family: inherit; font-size: 13px; font-weight: 500; padding: 9px 16px;
+    border-radius: 10px; border: 1px solid var(--line); background: var(--cream-2);
+    color: var(--ink); cursor: pointer;
+  }
+  .btn:hover { border-color: var(--soft); }
+  .btn.primary { background: var(--ink); color: var(--cream); border-color: var(--ink); }
+  .btn.danger { color: #A32D2D; }
+  .btn.subtle { border: none; background: none; color: var(--muted); text-decoration: underline; }
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    background: var(--ink); color: var(--cream); font-size: 13px; padding: 10px 20px;
+    border-radius: 999px; opacity: 0; transition: opacity .2s; z-index: 60; pointer-events: none;
+  }
+  .toast.show { opacity: 1; }
+
+  /* backdrop decor */
+  .decor { position: absolute; z-index: 0; pointer-events: none; display: none; }
+  body.backdrop-on .decor { display: block; }
+  .decor.top-right { top: -10px; right: -20px; width: 180px; opacity: 0.9; }
+  .decor-band { display: none; }
+  body.backdrop-on .decor-band {
+    display: flex; align-items: center; gap: 20px; max-width: 1280px;
+    margin: 0 auto; padding: 10px 32px 30px; position: relative; z-index: 1;
+  }
+  .decor-band img { width: 150px; height: auto; display: block; flex-shrink: 0; }
+  .decor-band .quote { font-size: 15px; color: var(--muted); font-style: italic; max-width: 400px; }
+
+  @media (max-width: 800px) {
+    .wrap { padding: 24px 16px 60px; }
+    .vitals-body { grid-template-columns: 1fr; }
+    .vital + .vital { border-left: none; border-top: 1px solid var(--line); }
+    .stages { flex-wrap: nowrap; }
+  }
+</style>
+</head>
+<body>
+<img class="decor top-right" src="assets/flower-girl.png" alt="">
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Social Headquarters</h1>
+      <div class="pills" id="headerPills"></div>
+    </div>
+    <div class="header-right">
+      <div class="settings">
+        <select id="paletteSelect" title="palette"></select>
+        <label><input type="checkbox" id="backdropToggle"> flowers</label>
+      </div>
+      <div class="toggle">
+        <button id="viewBoards" class="on">Boards</button>
+        <button id="viewCalendar">Calendar</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="vitals" id="vitals">
+    <div class="vitals-head" id="vitalsHead">
+      <span>Channel vitals</span>
+      <small id="vitalsPeek"></small>
+    </div>
+    <div class="vitals-body" id="vitalsBody"></div>
+  </div>
+
+  <div class="boards" id="boards"></div>
+
+  <div class="calendar" id="calendar">
+    <div class="cal-head">
+      <b id="calRange"></b>
+      <span>gaps are where the guilt lives</span>
+    </div>
+    <div class="cal-grid">
+      <div class="cal-days" id="calDays"></div>
+      <div id="calLanes"></div>
+      <div class="cal-legend"><span>&#9998; post</span><span>&#9635; carousel</span><span>&#9654; reel</span><span>&#9679; image</span></div>
+    </div>
+  </div>
+
+  <div class="graveyard" id="graveyard">
+    <div class="label">The graveyard · killed but not forgotten</div>
+    <div id="graveyardList"></div>
+  </div>
+</div>
+
+<div class="decor-band">
+  <img src="assets/hippie-girl-cutout.png" alt="">
+  <div class="quote">"Done is better than perfect — but posted is better than done."</div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="modal" id="modal"></div>
+</div>
+<div class="toast" id="toast"></div>
+</body>
+</html>
+<script>
+/* ============ CONFIG — paste your anon key (same one your Command Center uses) ============ */
+const SUPABASE_URL = 'https://neqxgfngmsysojsppjob.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5lcXhnZm5nbXN5c29qc3Bwam9iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxMDU1NzYsImV4cCI6MjA5NDY4MTU3Nn0.olSbNYgyt_90O5m4T4_j4Z80K0Av1FJFua9UF-0LCw0';
+/* =========================================================================================== */
+
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const PALETTES = {
+  'editorial cream':  { li: '#1D4E9E', ig: '#C22069', km: '#B3502B', purple: '#7A4FBF', tint: 5,  border: 16 },
+  'sunlit pop':       { li: '#2456E0', ig: '#E5147E', km: '#EF5B25', purple: '#8A4DE8', tint: 8,  border: 22 },
+  'electric sherbet': { li: '#3D53F5', ig: '#FF2D92', km: '#FF7A1A', purple: '#9D4EFF', tint: 11, border: 26 },
+  'riso brights':     { li: '#0057D8', ig: '#D9006C', km: '#D64200', purple: '#6B4EFF', tint: 13, border: 30 },
+  'flower power':     { li: '#3A4FD8', ig: '#E8309A', km: '#F08C00', purple: '#8B5CF6', tint: 16, border: 38 }
+};
+const TYPE_ICON = { text: '\u270E', carousel: '\u25A3', reel: '\u25B6', image: '\u25CF' };
+
+let channels = [], ideas = [], statusLines = [];
+let view = 'boards';
+let palette = localStorage.getItem('shq_palette') || 'editorial cream';
+let backdrop = localStorage.getItem('shq_backdrop') !== 'off';
+let vitalsCollapsed = localStorage.getItem('shq_vitals') === 'collapsed';
+let postedExpanded = {};
+
+const $ = (id) => document.getElementById(id);
+const esc = (s) => (s || '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const pal = () => PALETTES[palette] || PALETTES['editorial cream'];
+const chColor = (ch) => pal()[ch.color_key];
+const mix = (color, pct, base) => `color-mix(in oklab, ${color} ${pct}%, ${base})`;
+const cardBg = (ch) => mix(chColor(ch), pal().tint, '#FFFDF7');
+const cardBorder = (ch) => mix(chColor(ch), pal().border, '#EAE2D2');
+const fmtDate = (d) => d ? new Date(d).toLocaleDateString('en-IN', { weekday: 'short', month: 'short', day: 'numeric' }) : '';
+const fmtDateTime = (d) => {
+  if (!d) return '';
+  const dt = new Date(d);
+  const base = dt.toLocaleDateString('en-IN', { weekday: 'short', month: 'short', day: 'numeric' });
+  const hasTime = dt.getHours() !== 0 || dt.getMinutes() !== 0;
+  return hasTime ? `${base} \u00B7 ${dt.toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit', hour12: false })}` : base;
+};
+const daysSince = (d) => d ? Math.floor((Date.now() - new Date(d).getTime()) / 86400000) : null;
+function toast(msg) {
+  const t = $('toast'); t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+/* ---------- status line engine ---------- */
+function channelState(ch) {
+  const chIdeas = ideas.filter(i => i.channel_id === ch.id);
+  const live = chIdeas.filter(i => !i.posted_at && !i.killed_at);
+  const lastPosted = chIdeas.filter(i => i.posted_at).map(i => i.posted_at).sort().pop();
+  const n = daysSince(lastPosted);
+  const stale = live.find(i => i.owner === 'team' && daysSince(i.updated_at) >= 4);
+  const movedThisWeek = live.filter(i => daysSince(i.updated_at) <= 7).length;
+  if (stale) return { state: 'handoff_pending', n: daysSince(stale.updated_at) };
+  if (n === null || n > ch.cadence_target_days * 2) return { state: 'quiet', n: n ?? '\u221E' };
+  if (n > ch.cadence_target_days) return { state: 'drifting', n };
+  if (movedThisWeek >= 3) return { state: 'cooking', n };
+  return { state: 'healthy', n };
+}
+function statusLine(ch) {
+  const { state, n } = channelState(ch);
+  const options = statusLines.filter(l => l.channel_id === ch.id && l.state === state && l.active);
+  if (!options.length) return '';
+  const daySeed = Math.floor(Date.now() / 86400000);
+  const line = options[daySeed % options.length].line;
+  return line.replace('{n}', n);
+}
+
+/* ---------- data ---------- */
+async function load() {
+  const [chRes, idRes, slRes] = await Promise.all([
+    db.from('social_channels').select('*').order('sort_order'),
+    db.from('social_ideas').select('*').order('created_at'),
+    db.from('social_status_lines').select('*')
+  ]);
+  if (chRes.error || idRes.error || slRes.error) {
+    toast('Could not load — check the anon key in CONFIG');
+    console.error(chRes.error || idRes.error || slRes.error);
+    return;
+  }
+  channels = chRes.data; ideas = idRes.data; statusLines = slRes.data;
+  render();
+}
+
+/* ---------- render ---------- */
+function render() {
+  document.body.classList.toggle('backdrop-on', backdrop);
+  $('backdropToggle').checked = backdrop;
+  renderPaletteSelect();
+  renderHeader();
+  renderVitals();
+  renderBoards();
+  renderCalendar();
+  renderGraveyard();
+  $('boards').classList.toggle('off', view !== 'boards');
+  $('calendar').classList.toggle('on', view === 'calendar');
+  $('viewBoards').classList.toggle('on', view === 'boards');
+  $('viewCalendar').classList.toggle('on', view === 'calendar');
+}
+
+function renderPaletteSelect() {
+  $('paletteSelect').innerHTML = Object.keys(PALETTES).map(p =>
+    `<option ${p === palette ? 'selected' : ''}>${p}</option>`).join('');
+}
+
+function renderHeader() {
+  const alive = ideas.filter(i => !i.posted_at && !i.killed_at).length;
+  const now = new Date(); const weekEnd = new Date(now.getTime() + 7 * 86400000);
+  const sched = ideas.filter(i => i.scheduled_at && !i.posted_at && !i.killed_at &&
+    new Date(i.scheduled_at) >= now && new Date(i.scheduled_at) <= weekEnd).length;
+  const killed = ideas.filter(i => i.killed_at).length;
+  $('headerPills').innerHTML = `
+    <span class="pill">${alive} ideas alive</span>
+    <span class="pill">${sched} scheduled this week</span>
+    <span class="pill clickable" id="graveyardPill">${killed} killed, still mourned</span>`;
+  document.getElementById('graveyardPill').onclick = () => $('graveyard').classList.toggle('open');
+}
+
+function renderVitals() {
+  const head = $('vitalsHead');
+  head.onclick = () => {
+    vitalsCollapsed = !vitalsCollapsed;
+    localStorage.setItem('shq_vitals', vitalsCollapsed ? 'collapsed' : 'open');
+    render();
+  };
+  $('vitalsBody').style.display = vitalsCollapsed ? 'none' : 'grid';
+  $('vitalsPeek').textContent = vitalsCollapsed ? 'show \u25BE' : 'hide \u25B4';
+  if (vitalsCollapsed) return;
+  const y = new Date().getFullYear(), m = new Date().getMonth();
+  $('vitalsBody').innerHTML = channels.map(ch => {
+    const posted = ideas.filter(i => i.channel_id === ch.id && i.posted_at);
+    const last = posted.map(i => i.posted_at).sort().pop();
+    const next = ideas.filter(i => i.channel_id === ch.id && i.scheduled_at && !i.posted_at && !i.killed_at)
+      .map(i => i.scheduled_at).sort()[0];
+    const month = posted.filter(i => { const d = new Date(i.posted_at); return d.getFullYear() === y && d.getMonth() === m; }).length;
+    const year = posted.filter(i => new Date(i.posted_at).getFullYear() === y).length;
+    return `<div class="vital">
+      <div class="vname" style="color:${chColor(ch)}">${esc(ch.name)}</div>
+      <div class="vrow"><span>last post</span><b>${last ? fmtDate(last) : '\u2014'}</b></div>
+      <div class="vrow"><span>next scheduled</span><b>${next ? fmtDate(next) : '\u2014'}</b></div>
+      <div class="vstats">
+        <div class="vstat"><b>${month}</b><span>this month</span></div>
+        <div class="vstat"><b>${year}</b><span>this year</span></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function chipHtml(i) {
+  const chips = [];
+  if (i.voice_note_url || i.voice_note_duration) chips.push(`<span class="chip">\u25C9 voice note${i.voice_note_duration ? ' ' + esc(i.voice_note_duration) : ''}</span>`);
+  if (i.album_url) chips.push(`<span class="chip">\uD83D\uDCCE album${i.photo_count ? ' \u00B7 ' + i.photo_count + ' photos' : ''}</span>`);
+  if (i.scheduled_at && !i.posted_at) chips.push(`<span class="chip">\u25F7 ${fmtDateTime(i.scheduled_at)}</span>`);
+  if (i.owner === 'team') chips.push(`<span class="chip team">team${i.share_token ? ' \u00B7 link shared' : ''}${i.share_status === 'in_progress' ? ' \u00B7 in progress' : i.share_status === 'done' ? ' \u00B7 sent back' : ''}</span>`);
+  return chips.length ? `<div class="chips">${chips.join('')}</div>` : '';
+}
+
+function renderBoards() {
+  document.documentElement.style.setProperty('--purple', pal().purple);
+  $('boards').innerHTML = channels.map(ch => {
+    const stages = ch.stages;
+    const live = ideas.filter(i => i.channel_id === ch.id && !i.posted_at && !i.killed_at);
+    const posted = ideas.filter(i => i.channel_id === ch.id && i.posted_at)
+      .sort((a, b) => b.posted_at.localeCompare(a.posted_at));
+    const showAll = postedExpanded[ch.id];
+    const shown = showAll ? posted : posted.slice(0, 3);
+    const stageCols = stages.map(st => {
+      const cards = live.filter(i => i.stage === st);
+      const inner = cards.length
+        ? cards.map(i => `<div class="card ${i.owner === 'team' ? 'with-team' : ''}"
+            style="background:${cardBg(ch)};border-color:${cardBorder(ch)}" onclick="openIdea('${i.id}')">
+            <div class="title">${esc(i.title)}</div>${chipHtml(i)}</div>`).join('')
+        : `<div class="empty">\u2014</div>`;
+      return `<div class="stage ${cards.length ? '' : 'ghost'}">
+        <div class="stage-head"><b>${esc(st)}</b><span>${cards.length || ''}</span></div>${inner}</div>`;
+    }).join('');
+    const postedHtml = posted.length ? `<div class="posted">
+      <div class="label">Posted</div>
+      ${shown.map(i => `<div class="posted-row">${esc(i.title)}<span>\u2713 ${fmtDate(i.posted_at)}</span></div>`).join('')}
+      ${posted.length > 3 ? `<button class="more" onclick="togglePosted('${ch.id}')">${showAll ? 'show fewer' : 'show all ' + posted.length}</button>` : ''}
+    </div>` : '';
+    return `<section class="channel">
+      <div class="band" style="background:${chColor(ch)}">
+        <span class="mono">${esc(ch.mono)}</span>
+        <h2>${esc(ch.name)}</h2>
+        <span class="status">${esc(statusLine(ch))}</span>
+        <span class="count">${live.length} ideas</span>
+        <button class="add" onclick="openNew('${ch.id}')" title="add idea">+</button>
+      </div>
+      <div class="stages">${stageCols}</div>
+      ${postedHtml}
+    </section>`;
+  }).join('');
+}
+
+function renderCalendar() {
+  const now = new Date();
+  const monday = new Date(now); monday.setDate(now.getDate() - ((now.getDay() + 6) % 7)); monday.setHours(0,0,0,0);
+  const days = Array.from({ length: 14 }, (_, k) => new Date(monday.getTime() + k * 86400000));
+  const end = new Date(monday.getTime() + 14 * 86400000);
+  $('calRange').textContent = `${days[0].toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })} \u2013 ${days[13].toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })}`;
+  $('calDays').innerHTML = `<span></span>` + days.map(d =>
+    `<div class="cal-day ${d.toDateString() === now.toDateString() ? 'today' : ''}">
+      <div class="dow">${d.toLocaleDateString('en-IN', { weekday: 'short' }).slice(0, 2)}</div>
+      <div class="num">${d.getDate()}</div></div>`).join('');
+  $('calLanes').innerHTML = channels.map(ch => {
+    const cells = days.map(d => {
+      const dayIdeas = ideas.filter(i => {
+        if (i.killed_at || i.channel_id !== ch.id) return false;
+        const when = i.posted_at || i.scheduled_at;
+        return when && new Date(when).toDateString() === d.toDateString();
+      });
+      if (!dayIdeas.length) return `<div class="cal-cell"></div>`;
+      const i = dayIdeas[0];
+      const icon = TYPE_ICON[i.content_type] || '\u270E';
+      return `<div class="cal-chip" title="${esc(i.title)}" onclick="openIdea('${i.id}')"
+        style="background:${mix(chColor(ch), i.posted_at ? 8 : 18, '#FFFDF7')};color:${chColor(ch)};${i.posted_at ? 'opacity:.55;' : ''}">${icon}${dayIdeas.length > 1 ? '+' : ''}</div>`;
+    }).join('');
+    return `<div class="cal-lane"><span class="lname" style="color:${chColor(ch)}">${esc(ch.name)}</span>${cells}</div>`;
+  }).join('');
+}
+
+function renderGraveyard() {
+  const killed = ideas.filter(i => i.killed_at).sort((a, b) => b.killed_at.localeCompare(a.killed_at));
+  $('graveyardList').innerHTML = killed.length
+    ? killed.map(i => {
+        const ch = channels.find(c => c.id === i.channel_id);
+        return `<div class="posted-row" style="cursor:pointer" onclick="openIdea('${i.id}')">
+          ${esc(i.title)}<span>${ch ? esc(ch.name) : ''} \u00B7 killed ${fmtDate(i.killed_at)} \u00B7 tap to resurrect</span></div>`;
+      }).join('')
+    : `<div class="posted-row">nothing here \u00B7 either great judgement or great denial</div>`;
+}
+
+window.togglePosted = (chId) => { postedExpanded[chId] = !postedExpanded[chId]; render(); };
+
+/* ---------- modal: new + edit ---------- */
+function modalForm(ch, idea) {
+  const stages = ch.stages;
+  return `
+    <h3 style="color:${chColor(ch)}">${idea ? 'Edit idea' : 'New idea'} \u00B7 ${esc(ch.name)}</h3>
+    <div class="field"><label>Title</label><input id="fTitle" value="${esc(idea?.title || '')}"></div>
+    <div class="field"><label>Concept / brief</label><textarea id="fConcept">${esc(idea?.concept || '')}</textarea></div>
+    <div class="row2">
+      <div class="field"><label>Stage</label><select id="fStage">
+        ${stages.map(s => `<option ${idea?.stage === s ? 'selected' : ''}>${esc(s)}</option>`).join('')}
+      </select></div>
+      <div class="field"><label>Owner</label><select id="fOwner">
+        <option value="me" ${(!idea || idea.owner === 'me') ? 'selected' : ''}>me</option>
+        <option value="team" ${idea?.owner === 'team' ? 'selected' : ''}>team</option>
+      </select></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label>Type</label><select id="fType">
+        <option value="">\u2014</option>
+        ${['text','image','carousel','reel'].map(t => `<option ${idea?.content_type === t ? 'selected' : ''}>${t}</option>`).join('')}
+      </select></div>
+      <div class="field"><label>Scheduled</label><input id="fSched" type="datetime-local" value="${idea?.scheduled_at ? new Date(new Date(idea.scheduled_at).getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16) : ''}"></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label>Photo album link</label><input id="fAlbum" placeholder="Google Photos link" value="${esc(idea?.album_url || '')}"></div>
+      <div class="field"><label>Photo count</label><input id="fCount" type="number" value="${idea?.photo_count ?? ''}"></div>
+    </div>
+    <div class="field"><label>Needed by (for team)</label><input id="fNeeded" type="date" value="${idea?.needed_by || ''}"></div>`;
+}
+
+window.openNew = (chId) => {
+  const ch = channels.find(c => c.id === chId);
+  $('modal').innerHTML = modalForm(ch) + `
+    <div class="actions">
+      <button class="btn primary" onclick="saveIdea('${chId}', null)">Add idea</button>
+      <button class="btn subtle" onclick="closeModal()">cancel</button>
+    </div>`;
+  $('overlay').classList.add('open');
+};
+
+window.openIdea = (id) => {
+  const idea = ideas.find(i => i.id === id);
+  const ch = channels.find(c => c.id === idea.channel_id);
+  const shareBits = idea.share_token
+    ? `<button class="btn" onclick="copyShare('${id}')">Copy team link</button>
+       <button class="btn subtle" onclick="revokeShare('${id}')">revoke link</button>`
+    : `<button class="btn" onclick="makeShare('${id}')">Share with team</button>`;
+  const lifeBits = idea.killed_at
+    ? `<button class="btn" onclick="resurrect('${id}')">Resurrect</button>`
+    : idea.posted_at
+      ? `<button class="btn" onclick="unpost('${id}')">Un-mark posted</button>`
+      : `<button class="btn" onclick="markPosted('${id}')">Mark posted \u2713</button>
+         <button class="btn danger" onclick="killIdea('${id}')">Kill it</button>`;
+  $('modal').innerHTML = modalForm(ch, idea) + `
+    <div class="actions">
+      <button class="btn primary" onclick="saveIdea('${ch.id}', '${id}')">Save</button>
+      ${lifeBits}${shareBits}
+      <button class="btn subtle" onclick="closeModal()">close</button>
+    </div>`;
+  $('overlay').classList.add('open');
+};
+
+window.closeModal = () => $('overlay').classList.remove('open');
+$('overlay').addEventListener('click', (e) => { if (e.target === $('overlay')) closeModal(); });
+
+function formData() {
+  const sched = $('fSched').value;
+  return {
+    title: $('fTitle').value.trim(),
+    concept: $('fConcept').value.trim() || null,
+    stage: $('fStage').value,
+    owner: $('fOwner').value,
+    content_type: $('fType').value || null,
+    scheduled_at: sched ? new Date(sched).toISOString() : null,
+    album_url: $('fAlbum').value.trim() || null,
+    photo_count: $('fCount').value ? parseInt($('fCount').value) : null,
+    needed_by: $('fNeeded').value || null
+  };
+}
+
+window.saveIdea = async (chId, id) => {
+  const data = formData();
+  if (!data.title) { toast('A title, at minimum'); return; }
+  const res = id
+    ? await db.from('social_ideas').update(data).eq('id', id)
+    : await db.from('social_ideas').insert({ ...data, channel_id: chId });
+  if (res.error) { toast('Save failed'); console.error(res.error); return; }
+  closeModal(); toast(id ? 'Saved' : 'Idea banked'); load();
+};
+
+window.markPosted = async (id) => {
+  await db.from('social_ideas').update({ posted_at: new Date().toISOString() }).eq('id', id);
+  closeModal(); toast('Posted \u2713'); load();
+};
+window.unpost = async (id) => {
+  await db.from('social_ideas').update({ posted_at: null }).eq('id', id);
+  closeModal(); load();
+};
+window.killIdea = async (id) => {
+  await db.from('social_ideas').update({ killed_at: new Date().toISOString() }).eq('id', id);
+  closeModal(); toast('To the graveyard'); load();
+};
+window.resurrect = async (id) => {
+  await db.from('social_ideas').update({ killed_at: null }).eq('id', id);
+  closeModal(); toast('It lives'); load();
+};
+window.makeShare = async (id) => {
+  const token = crypto.randomUUID().replace(/-/g, '');
+  await db.from('social_ideas').update({ share_token: token, share_status: 'sent', owner: 'team' }).eq('id', id);
+  await navigator.clipboard.writeText(shareUrl(token)).catch(() => {});
+  closeModal(); toast('Team link copied'); load();
+};
+window.copyShare = async (id) => {
+  const idea = ideas.find(i => i.id === id);
+  await navigator.clipboard.writeText(shareUrl(idea.share_token)).catch(() => {});
+  toast('Link copied');
+};
+window.revokeShare = async (id) => {
+  await db.from('social_ideas').update({ share_token: null, share_status: null }).eq('id', id);
+  closeModal(); toast('Link revoked'); load();
+};
+const shareUrl = (token) => `${location.origin}${location.pathname.replace(/social\.html$/, '')}share.html?t=${token}`;
+
+/* ---------- controls ---------- */
+$('viewBoards').onclick = () => { view = 'boards'; render(); };
+$('viewCalendar').onclick = () => { view = 'calendar'; render(); };
+$('paletteSelect').onchange = (e) => {
+  palette = e.target.value;
+  localStorage.setItem('shq_palette', palette);
+  render();
+};
+$('backdropToggle').onchange = (e) => {
+  backdrop = e.target.checked;
+  localStorage.setItem('shq_backdrop', backdrop ? 'on' : 'off');
+  render();
+};
+
+load();
+</script>
