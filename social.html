@@ -307,7 +307,8 @@ async function load() {
     db.from('social_status_lines').select('*')
   ]);
   if (chRes.error || idRes.error || slRes.error) {
-    toast('Could not load \u2014 check connection'); console.error(chRes.error || idRes.error || slRes.error); return;
+    const e = chRes.error || idRes.error || slRes.error;
+    toast('Could not load: ' + (e.message || 'check connection')); console.error(e); return;
   }
   channels = chRes.data; ideas = idRes.data; statusLines = slRes.data;
   render();
@@ -458,7 +459,10 @@ function modalForm(ch, idea) {
       <div class="field"><label>Photo album link</label><input id="fAlbum" placeholder="Google Photos link" value="${esc(idea?.album_url || '')}"></div>
       <div class="field"><label>Photo count</label><input id="fCount" type="number" value="${idea?.photo_count ?? ''}"></div>
     </div>
-    <div class="field"><label>Needed by (for team)</label><input id="fNeeded" type="date" value="${idea?.needed_by || ''}"></div>`;
+    <div class="row2">
+      <div class="field"><label>Needed by (for team)</label><input id="fNeeded" type="date" value="${idea?.needed_by || ''}"></div>
+      <div class="field"><label>Posted on · set to backdate</label><input id="fPosted" type="date" value="${idea?.posted_at ? new Date(idea.posted_at).toISOString().slice(0,10) : ''}"></div>
+    </div>`;
 }
 
 window.openNew = (chId) => {
@@ -496,18 +500,19 @@ $('overlay').addEventListener('click', (e) => { if (e.target === $('overlay')) c
 document.addEventListener('click', (e) => { if (!e.target.closest('.ws')) $('wsMenu').style.display = 'none'; });
 
 function formData() {
-  const sched = $('fSched').value;
+  const v = (id) => { const el = $(id); return el ? el.value : ''; };
+  const sched = v('fSched');
   return {
-    title: $('fTitle').value.trim(),
-    concept: $('fConcept').value.trim() || null,
-    stage: $('fStage').value,
-    owner: $('fOwner').value,
-    content_type: $('fType').value || null,
+    title: v('fTitle').trim(),
+    concept: v('fConcept').trim() || null,
+    stage: v('fStage'),
+    owner: v('fOwner'),
+    content_type: v('fType') || null,
     scheduled_at: sched ? new Date(sched).toISOString() : null,
-    album_url: $('fAlbum').value.trim() || null,
-    photo_count: $('fCount').value ? parseInt($('fCount').value) : null,
-    needed_by: $('fNeeded').value || null,
-    posted_at: $('fPosted').value ? new Date($('fPosted').value + 'T12:00:00').toISOString() : null
+    album_url: v('fAlbum').trim() || null,
+    photo_count: v('fCount') ? parseInt(v('fCount')) : null,
+    needed_by: v('fNeeded') || null,
+    posted_at: v('fPosted') ? new Date(v('fPosted') + 'T12:00:00').toISOString() : null
   };
 }
 
@@ -516,7 +521,7 @@ window.saveIdea = async (chId, id) => {
   if (!data.title) { toast('A title, at minimum'); return; }
   const res = id ? await db.from('social_ideas').update(data).eq('id', id)
                  : await db.from('social_ideas').insert({ ...data, channel_id: chId });
-  if (res.error) { toast('Save failed'); console.error(res.error); return; }
+  if (res.error) { toast('Save failed: ' + (res.error.message || res.error.code || 'unknown')); console.error(res.error); return; }
   closeModal(); toast(id ? 'Saved' : 'Idea banked'); load();
 };
 window.markPosted = async (id) => { await db.from('social_ideas').update({ posted_at: new Date().toISOString() }).eq('id', id); closeModal(); toast('Posted \u2713'); load(); };
