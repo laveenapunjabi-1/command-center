@@ -79,6 +79,8 @@
   .card.posted { background:#F1F7E9 !important; border-color:#D3E3BC !important; }
   .card.posted .title { color:#3B6D11; }
   .card.posted .chip { color:#6B8A5E; }
+  .more { font-family:inherit; font-size:12px; color:var(--muted); background:none; border:none; text-decoration:underline; cursor:pointer; padding:2px 0; }
+  .colscroll { max-height:420px; overflow-y:auto; padding-right:4px; scrollbar-width:thin; scrollbar-color:var(--line) transparent; }
 
   .calendar { margin-top:26px; display:none; }
   .calendar.on { display:block; }
@@ -256,6 +258,7 @@ let view = 'boards';
 let palette = localStorage.getItem('shq_palette') || 'editorial cream';
 let backdrop = localStorage.getItem('shq_backdrop') !== 'off';
 let vitalsCollapsed = localStorage.getItem('shq_vitals') === 'collapsed';
+let postedExpanded = {}, killedExpanded = {};
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => (s || '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -385,12 +388,20 @@ function renderBoards() {
         : `<div class="empty">\u2014</div>`;
       return `<div class="stage ${cards.length ? '' : 'ghost'}"><div class="stage-head"><b>${esc(st)}</b><span>${cards.length || ''}</span></div>${inner}</div>`;
     }).join('');
+    const pOpen = postedExpanded[ch.id];
+    const pShown = pOpen ? posted.slice(0, 15) : posted.slice(0, 3);
+    const pLabel = pOpen ? 'show fewer' : (posted.length > 15 ? 'show last 15 of ' + posted.length : 'show all ' + posted.length);
     const postedCol = `<div class="stage ${posted.length ? '' : 'ghost'}"><div class="stage-head"><b>Posted</b><span>${posted.length || ''}</span></div>
-      ${posted.length ? posted.map(i => `<div class="card posted" onclick="openIdea('${i.id}')">
-        <div class="title">${esc(i.title)}</div><div class="chips"><span class="chip">\u2713 posted ${fmtDate(i.posted_at)}</span></div></div>`).join('') : '<div class="empty">\u2014</div>'}</div>`;
+      <div class="${pOpen ? 'colscroll' : ''}">${posted.length ? pShown.map(i => `<div class="card posted" onclick="openIdea('${i.id}')">
+        <div class="title">${esc(i.title)}</div><div class="chips"><span class="chip">\u2713 posted ${fmtDate(i.posted_at)}</span></div></div>`).join('') : '<div class="empty">\u2014</div>'}</div>
+      ${posted.length > 3 ? `<button class="more" onclick="togglePosted('${ch.id}')">${pLabel}</button>` : ''}</div>`;
+    const kOpen = killedExpanded[ch.id];
+    const kShown = kOpen ? killed.slice(0, 15) : killed.slice(0, 3);
+    const kLabel = kOpen ? 'show fewer' : (killed.length > 15 ? 'show last 15 of ' + killed.length : 'show all ' + killed.length);
     const killedCol = `<div class="stage ${killed.length ? '' : 'ghost'}"><div class="stage-head"><b>Killed</b><span>${killed.length || ''}</span></div>
-      ${killed.length ? killed.map(i => `<div class="card ended" style="border-color:${cardBorder(ch)}" onclick="openIdea('${i.id}')">
-        <div class="title">${esc(i.title)}</div><div class="chips"><span class="chip">\u2715 ${esc(i.killed_reason || 'killed')} \u00B7 ${fmtDate(i.killed_at)}</span></div></div>`).join('') : '<div class="empty">\u2014</div>'}</div>`;
+      <div class="${kOpen ? 'colscroll' : ''}">${killed.length ? kShown.map(i => `<div class="card ended" style="border-color:${cardBorder(ch)}" onclick="openIdea('${i.id}')">
+        <div class="title">${esc(i.title)}</div><div class="chips"><span class="chip">\u2715 ${esc(i.killed_reason || 'killed')} \u00B7 ${fmtDate(i.killed_at)}</span></div></div>`).join('') : '<div class="empty">\u2014</div>'}</div>
+      ${killed.length > 3 ? `<button class="more" onclick="toggleKilled('${ch.id}')">${kLabel}</button>` : ''}</div>`;
     return `<section class="channel">
       <div class="band" style="background:${chColor(ch)}">
         <span class="mono">${esc(ch.mono)}</span>
@@ -495,7 +506,8 @@ function formData() {
     scheduled_at: sched ? new Date(sched).toISOString() : null,
     album_url: $('fAlbum').value.trim() || null,
     photo_count: $('fCount').value ? parseInt($('fCount').value) : null,
-    needed_by: $('fNeeded').value || null
+    needed_by: $('fNeeded').value || null,
+    posted_at: $('fPosted').value ? new Date($('fPosted').value + 'T12:00:00').toISOString() : null
   };
 }
 
@@ -537,6 +549,8 @@ window.revokeShare = async (id) => {
 };
 const shareUrl = (token) => `${location.origin}${location.pathname.replace(/social\.html$/, '')}share.html?t=${token}`;
 
+window.togglePosted = (chId) => { postedExpanded[chId] = !postedExpanded[chId]; render(); };
+window.toggleKilled = (chId) => { killedExpanded[chId] = !killedExpanded[chId]; render(); };
 $('viewBoards').onclick = () => { view = 'boards'; render(); };
 $('viewCalendar').onclick = () => { view = 'calendar'; render(); };
 $('paletteSelect').onchange = (e) => { palette = e.target.value; localStorage.setItem('shq_palette', palette); render(); };
