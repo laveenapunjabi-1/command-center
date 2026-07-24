@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Social HQ</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Dancing+Script:wght@500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Great+Vibes&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
   :root { --cream:#FFFDF7; --cream-2:#FFFBF4; --ink:#2C261D; --muted:#8A8072; --soft:#B5AC9B; --line:#E5DCC9; --line-2:#EAE2D2; }
@@ -115,24 +115,64 @@
 
   .decor { position:absolute; z-index:0; pointer-events:none; display:none; }
   body.backdrop-on .decor { display:block; }
-  .decor.top-right { top:70px; right:-36px; width:320px; }
+  .decor.top-right { top:-20px; right:-50px; width:330px; height:385px; opacity:0.9; }
   .decor-band { display:none; }
   body.backdrop-on .decor-band { display:flex; align-items:center; gap:34px; max-width:1280px; margin:0 auto; padding:10px 32px 40px; position:relative; z-index:1; }
-  .decor-band img { width:190px; height:auto; display:block; flex-shrink:0; }
-  .decor-band .quote { font-family:'Dancing Script',cursive; font-size:38px; line-height:1.35; color:var(--ink); max-width:560px; }
-  .decor-band .quote em { font-style:normal; color:#E5C158; }
+  .decor-band img { width:150px; height:auto; display:block; flex-shrink:0; }
+  .decor-band .quote { font-family:'Great Vibes',cursive; font-size:48px; line-height:1.25; color:var(--ink); max-width:760px; opacity:0.88; }
+  .decor-band .quote em { font-style:normal; color:#F2C13D; }
 
   @media (max-width:800px) {
     .wrap { padding:22px 16px 40px; }
     .vitals-body { grid-template-columns:1fr; }
     .vital + .vital { border-left:none; border-top:1px solid var(--line-2); }
     .decor.top-right { width:180px; top:10px; }
-    .decor-band .quote { font-size:28px; }
+    .decor-band .quote { font-size:32px; }
   }
 </style>
 </head>
 <body>
-<img class="decor top-right" src="assets/flower-girl.png" alt="">
+<svg viewBox="0 0 240 280" class="decor top-right">
+        <path d="M 150 280 C 148 210 152 150 158 96" fill="none" stroke="#7E9469" stroke-width="6"></path>
+        <path d="M 90 280 C 92 235 86 200 72 168" fill="none" stroke="#7E9469" stroke-width="5"></path>
+        <path d="M 200 280 C 202 250 206 226 210 204" fill="none" stroke="#7E9469" stroke-width="4"></path>
+        <ellipse cx="132" cy="190" rx="10" ry="26" fill="#7E9469" transform="rotate(48 132 190)"></ellipse>
+        <ellipse cx="172" cy="230" rx="9" ry="24" fill="#7E9469" transform="rotate(-40 172 230)"></ellipse>
+        <g transform="translate(160 62)">
+          <g fill="#F2C13D">
+            <ellipse cy="-38" rx="11" ry="24"></ellipse><ellipse cy="-38" rx="11" ry="24" transform="rotate(30)"></ellipse>
+            <ellipse cy="-38" rx="11" ry="24" transform="rotate(60)"></ellipse><ellipse cy="-38" rx="11" ry="24" transform="rotate(90)"></ellipse>
+            <ellipse cy="-38" rx="11" ry="24" transform="rotate(120)"></ellipse><ellipse cy="-38" rx="11" ry="24" transform="rotate(150)"></ellipse>
+            <ellipse cy="-38" rx="11" ry="24" transform="rotate(180)"></ellipse><ellipse cy="-38" rx="11" ry="24" transform="rotate(210)"></ellipse>
+            <ellipse cy="-38" rx="11" ry="24" transform="rotate(240)"></ellipse><ellipse cy="-38" rx="11" ry="24" transform="rotate(270)"></ellipse>
+            <ellipse cy="-38" rx="11" ry="24" transform="rotate(300)"></ellipse><ellipse cy="-38" rx="11" ry="24" transform="rotate(330)"></ellipse>
+          </g>
+          <circle r="24" fill="#6B4423"></circle>
+          <circle r="15" fill="none" stroke="#8A5A2E" stroke-width="3" stroke-dasharray="2 4"></circle>
+        </g>
+        <g transform="translate(72 150) scale(0.72)">
+          <g fill="#EFBB35">
+            <ellipse cy="-38" rx="11" ry="24"></ellipse><ellipse cy="-38" rx="11" ry="24" transform="rotate(30)"></ellipse>
+            <ellipse cy="-38" rx="11" ry="24" transform="rotate(60)"></ellipse><ellipse cy="-38" rx="11" ry="24" transform="rotate(90)"></ellipse>
+            <ellipse cy="-38" rx="11" ry="24" transform="rotate(120)"></ellipse><ellipse cy="-38" rx="11" ry="24" transform="rotate(150)"></ellipse>
+            <ellipse cy="-38" rx="11" ry="24" transform="rotate(180)"></ellipse><ellipse cy="-38" rx="11" ry="24" transform="rotate(210)"></ellipse>
+            <ellipse cy="-38" rx="11" ry="24" transform="rotate(240)"></ellipse><ellipse cy="-38" rx="11" ry="24" transform="rotate(270)"></ellipse>
+            <ellipse cy="-38" rx="11" ry="24" transform="rotate(300)"></ellipse><ellipse cy="-38" rx="11" ry="24" transform="rotate(330)"></ellipse>
+          </g>
+          <circle r="24" fill="#6B4423"></circle>
+        </g>
+        <g transform="translate(212 196) scale(0.5) rotate(18)">
+          <g fill="#F2C13D">
+            <ellipse cy="-38" rx="11" ry="24"></ellipse><ellipse cy="-38" rx="11" ry="24" transform="rotate(30)"></ellipse>
+            <ellipse cy="-38" rx="11" ry="24" transform="rotate(60)"></ellipse><ellipse cy="-38" rx="11" ry="24" transform="rotate(90)"></ellipse>
+            <ellipse cy="-38" rx="11" ry="24" transform="rotate(120)"></ellipse><ellipse cy="-38" rx="11" ry="24" transform="rotate(150)"></ellipse>
+            <ellipse cy="-38" rx="11" ry="24" transform="rotate(180)"></ellipse><ellipse cy="-38" rx="11" ry="24" transform="rotate(210)"></ellipse>
+            <ellipse cy="-38" rx="11" ry="24" transform="rotate(240)"></ellipse><ellipse cy="-38" rx="11" ry="24" transform="rotate(270)"></ellipse>
+            <ellipse cy="-38" rx="11" ry="24" transform="rotate(300)"></ellipse><ellipse cy="-38" rx="11" ry="24" transform="rotate(330)"></ellipse>
+          </g>
+          <circle r="24" fill="#6B4423"></circle>
+        </g>
+      </svg>
 <div class="wrap">
   <div class="ws">
     <div class="ws-icon">LP</div>
@@ -183,7 +223,7 @@
 
 <div class="decor-band">
   <img src="assets/hippie-girl-cutout.png" alt="">
-  <div class="quote">You will be working from your own office, soon <em>&#9829;</em></div>
+  <div class="quote">You will be working from<br>your own office, soon <em>&#9829;</em></div>
 </div>
 
 <div class="overlay" id="overlay">
