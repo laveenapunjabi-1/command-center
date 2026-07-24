@@ -15,8 +15,9 @@
 
   .ws { display:flex; align-items:center; gap:10px; margin-bottom:22px; position:relative; }
   .ws-icon { width:34px; height:34px; border-radius:10px; background:#7A4FBF; color:#FFFBF4; font-size:12px; font-weight:700; display:flex; align-items:center; justify-content:center; }
-  .ws-name { font-size:14px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:6px; }
-  .ws-name span { font-size:10px; color:var(--soft); }
+  .ws-name { font-size:14px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:8px; padding:7px 14px; background:#fff; border:1px solid var(--line); border-radius:999px; }
+  .ws-name:hover { border-color:var(--soft); }
+  .ws-name span { font-size:13px; color:#7A4FBF; }
   .ws-menu { display:none; position:absolute; top:44px; left:44px; background:#fff; border:1px solid var(--line); border-radius:12px; padding:6px; min-width:190px; z-index:100; box-shadow:0 10px 30px rgba(44,38,29,0.1); }
   .ws-menu a, .ws-menu b { display:block; font-size:13px; padding:9px 12px; border-radius:8px; color:var(--ink); text-decoration:none; font-weight:400; }
   .ws-menu b { background:var(--cream-2); font-weight:700; }
@@ -31,9 +32,9 @@
   .toggle { display:flex; background:#fff; border:1px solid var(--line); border-radius:999px; padding:4px; }
   .toggle button { font-family:inherit; font-size:13.5px; font-weight:500; padding:8px 20px; border:none; border-radius:999px; background:transparent; color:var(--muted); cursor:pointer; }
   .toggle button.on { background:var(--ink); color:var(--cream); }
-  .settings { display:flex; justify-content:flex-end; align-items:center; gap:10px; font-size:11px; color:var(--soft); margin-top:8px; }
-  .settings select { font-family:inherit; font-size:11px; color:var(--muted); background:transparent; border:1px solid var(--line); border-radius:8px; padding:3px 6px; cursor:pointer; }
-  .settings label { display:flex; align-items:center; gap:4px; cursor:pointer; }
+  .footer-settings { max-width:1280px; margin:0 auto; padding:6px 32px 30px; display:flex; justify-content:flex-end; align-items:center; gap:12px; font-size:12.5px; color:var(--muted); position:relative; z-index:1; }
+  .footer-settings select { font-family:inherit; font-size:12.5px; color:var(--ink); background:#fff; border:1px solid var(--line); border-radius:8px; padding:5px 9px; cursor:pointer; }
+  .footer-settings label { display:flex; align-items:center; gap:5px; cursor:pointer; }
 
   .vitals { margin-top:22px; border:1px solid var(--line); border-radius:16px; background:#fff; overflow:hidden; }
   .vitals-head { display:flex; align-items:center; justify-content:space-between; padding:14px 20px; }
@@ -74,8 +75,10 @@
   .card .chip.team { color:#7A4FBF; font-weight:500; }
   .card.with-team { border-left:3px solid #7A4FBF; }
   .card.ended { background:transparent; }
-  .card.ended .title { color:var(--muted); font-weight:400; }
-  .card.posted .title { text-decoration:line-through; }
+  .card.ended .title { color:var(--muted); font-weight:400; text-decoration:line-through; }
+  .card.posted { background:#F1F7E9 !important; border-color:#D3E3BC !important; }
+  .card.posted .title { color:#3B6D11; }
+  .card.posted .chip { color:#6B8A5E; }
 
   .calendar { margin-top:26px; display:none; }
   .calendar.on { display:block; }
@@ -193,11 +196,6 @@
       </div>
     </div>
   </div>
-  <div class="settings">
-    <select id="paletteSelect"></select>
-    <label><input type="checkbox" id="backdropToggle"> flowers</label>
-  </div>
-
   <div class="vitals" id="vitals">
     <div class="vitals-head">
       <span>Channel vitals</span>
@@ -224,6 +222,11 @@
 <div class="decor-band">
   <img src="assets/hippie-girl-cutout.png" alt="">
   <div class="quote">You will be working from<br>your own office, soon <em>&#9829;</em></div>
+</div>
+
+<div class="footer-settings">
+  <span>palette</span><select id="paletteSelect"></select>
+  <label><input type="checkbox" id="backdropToggle"> flowers</label>
 </div>
 
 <div class="overlay" id="overlay">
@@ -383,8 +386,8 @@ function renderBoards() {
       return `<div class="stage ${cards.length ? '' : 'ghost'}"><div class="stage-head"><b>${esc(st)}</b><span>${cards.length || ''}</span></div>${inner}</div>`;
     }).join('');
     const postedCol = `<div class="stage ${posted.length ? '' : 'ghost'}"><div class="stage-head"><b>Posted</b><span>${posted.length || ''}</span></div>
-      ${posted.length ? posted.map(i => `<div class="card ended posted" style="border-color:${cardBorder(ch)}" onclick="openIdea('${i.id}')">
-        <div class="title">${esc(i.title)}</div><div class="chips"><span class="chip">\u25F7 ${fmtDate(i.posted_at)}</span></div></div>`).join('') : '<div class="empty">\u2014</div>'}</div>`;
+      ${posted.length ? posted.map(i => `<div class="card posted" onclick="openIdea('${i.id}')">
+        <div class="title">${esc(i.title)}</div><div class="chips"><span class="chip">\u2713 posted ${fmtDate(i.posted_at)}</span></div></div>`).join('') : '<div class="empty">\u2014</div>'}</div>`;
     const killedCol = `<div class="stage ${killed.length ? '' : 'ghost'}"><div class="stage-head"><b>Killed</b><span>${killed.length || ''}</span></div>
       ${killed.length ? killed.map(i => `<div class="card ended" style="border-color:${cardBorder(ch)}" onclick="openIdea('${i.id}')">
         <div class="title">${esc(i.title)}</div><div class="chips"><span class="chip">\u2715 ${esc(i.killed_reason || 'killed')} \u00B7 ${fmtDate(i.killed_at)}</span></div></div>`).join('') : '<div class="empty">\u2014</div>'}</div>`;
